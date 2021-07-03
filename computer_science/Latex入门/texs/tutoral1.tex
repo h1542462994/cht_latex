@@ -1,0 +1,19 @@
+% 单行宏，其中option是可以省略的，称为选项
+\command[option]{content}
+% 例如，当你需要对某一段内容加粗时，可以这么写。
+这是没有加粗的内容\textbf{这是加粗的内容}
+% 例如，此宏将会读取当前文本的宽度，常用来设置参数时使用
+\textwidth
+
+% 段落宏，其中option时可以省略的，称为选项
+\begin{command}[option]
+    ...content
+\end{command}
+% 例如，当你需要插入一张图片时，可以这么写
+% 其中\label命令将会在引用章节说明
+\begin{figure}[H]
+    \centering
+    \includegraphics[option]{图片的路径}
+    \caption{标签的内容}
+    \label{Label的内容}
+\end{figure}

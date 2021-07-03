@@ -1,0 +1,43 @@
+\documentclass{article}
+\usepackage{ctex}
+\usepackage[colorlinks]{hyperref}
+\usepackage{bookmark}
+\begin{document}
+    % 直接编写url，可跳转
+    \url{http://www.ctex.org/documents/packages/}
+
+    % 不可以跳转的url
+    \nolinkurl{http://www.ctex.org/documents/packages/}
+
+    % 直接编写url，可跳转
+    \url{about:blank}
+
+    % 内容指向一个url
+    % 只有url是一个合法的链接才可以跳转
+    % 格式为 \href{网址}{内容}
+    \href{http://www.ctex.org/documents/packages/}{author1}
+
+    % 创建指向锚点的链接
+    \hyperlink{author2}{跳转至内容1}
+
+    中间的内容
+
+    中间的内容
+
+    中间的内容
+
+    中间的内容
+
+    中间的内容
+
+    中间的内容
+
+    中间的内容
+
+    中间的内容
+
+    % 创建锚点，用于文档的定位，当后面的内容为空时指向下一个元素
+    \hypertarget{author2}{内容1}
+
+    内容2
+\end{document}

@@ -1,0 +1,12 @@
+
+# latex build files.
+*.bcf
+*.run.xml
+*.pdf
+*.aux
+*.log
+*.synctex.gz
+*.toc
+
+# not include production pdf.
+!/production/**/*.pdf
