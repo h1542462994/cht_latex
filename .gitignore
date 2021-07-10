@@ -8,5 +8,9 @@
 *.synctex.gz
 *.toc
 
+
 # not include production pdf.
 !/production/**/*.pdf
+
+# secret latex
+/secret_domain/

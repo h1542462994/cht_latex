@@ -69,7 +69,7 @@
         "%LINE%",
         "-reuse-instance",
         "-inverse-search",
-        "\"C:/Users/huang/cht/Local/Programs/Microsoft VS Code/Code.exe\" \"C:/Users/cht/AppData/Local/Programs/Microsoft VS Code/resources/app/out/cli.js\" -gr \"%f\":\"%l\"",
+        "\"C:/Users/cht/Local/Programs/Microsoft VS Code/Code.exe\" \"C:/Users/cht/AppData/Local/Programs/Microsoft VS Code/resources/app/out/cli.js\" -gr \"%f\":\"%l\"",
         "%PDF%"
     ],
     "latex-workshop.view.pdf.external.synctex.command": "C:/Program Files/SumatraPDF/SumatraPDF.exe",
