@@ -93,6 +93,15 @@
 
     为了更好的介绍Joda-time是如何设计、实现时间的处理的，我们仍然有必要介绍一下Java中日期和时间的传统Api。下表给出了在日期和时间处理中使用到的各个\textbf{class}。
 
+    \begin{note}
+        在之后的笔记中，有时候时间的含义可能有两种情况：
+        \begin{enumerate}
+            \item 代表一个24小时内的时间
+            \item 代表一个瞬时的时间点
+        \end{enumerate}
+        因此，请读者在阅读笔记时根据上下文确定含义，避免不必要的误会。
+    \end{note}
+
     \begin{table}[htbp]
         \centering
         \caption{日期和时间处理中常用到的\textbf{class}}
@@ -500,11 +509,72 @@ static final class SystemClock extends Clock implements Serializable {
 
     \subsection{Instant、LocalDateTime、ZoneDateTime之间的关系}
 
+    \textbf{Instant}，\textbf{LocalDateTime}，\textbf{ZonedDateTime}均是java1.8之后引入，用于替代\textbf{Date}的类型。他们三者具有相似的结构，存储的内容也大致相同，而且均实现了\textbf{Temporal}和\textbf{TemporalAdjuster}接口。因此，一定程度上讲三者是\textbf{等价}的关系，可以通过一系列规则进行互相转换。三者的区别主要如下：
+
+    \begin{enumerate}
+        \item \textbf{Instant}：三个类的中心类，用于记录一个时间轴上瞬时的点，以UTC的时间为参考标准，不带时区信息。
+        \item \textbf{LocalDateTime}，可以由\textbf{Instant}添加偏移得到，用于记录本地的时间，不带时区信息。时区信息存储在\textbf{SystemClock(ZoneId.systemDefault())}内。
+        \item \textbf{ZonedDateTime}，可以由\textbf{Instant}中调用\textbf{atZone(ZoneId)}方法得到，用于获取\textbf{Instant}等价的对应时区的时间。
+        \item \textbf{OffsetDateTime}，可以有\textbf{Instant}中调用\textbf{atOffset(ZoneOffset)}得到，用于获取\textbf{Instant}等价的对应时区的时间。
+    \end{enumerate}
+
+    对于大多数应用而言，只需要关注\textbf{Instant}和\textbf{LocalDateTime}两个类即可。
+
+    \begin{note}
+        \textbf{Instant}由于其使用标准时区（UTC），因此在java1.8之中，仍然保留了其与Old Api的交互，以保证向后兼容性。需要注意的是，仅提供了从\textbf{Date}转向\textbf{Instant}的方法。而且，由于\textbf{Date}的计时精度为ms（毫秒），\textbf{Instant}的计时精度为ns（纳秒），因此这种转换会丢失精度。
+
+        因此，推荐在项目实践中，统一使用\textbf{Instant}去替代\textbf{Date}、
+    \end{note}
+
+    下面是示例代码：
+
+    \begin{lstlisting}[language=Kotlin]
+@Test
+fun testInstantTransform() {
+    // transform from date to instant.
+    val instant = Date().toInstant()
+    println(instant)
+
+    // the standard way to get instant
+    val instant1 = Instant.now()
+    println(instant1)
+
+    // the standard way to get localDateTime
+    val localDateTime = LocalDateTime.now()
+    println(localDateTime)
+
+    val zonedDateTime = instant1.atZone(ZoneId.systemDefault())
+    println(zonedDateTime)
+    val localDateTime2 = zonedDateTime.toLocalDateTime()
+    println(localDateTime2)
+
+    val zonedDateTime2 = localDateTime.atZone(ZoneId.systemDefault())
+    println(zonedDateTime2)
+}
+    \end{lstlisting}
+
+    \begin{lstlisting}[]
+2021-07-11T09:32:10.747Z
+2021-07-11T09:32:10.747906800Z
+2021-07-11T17:32:10.747906800
+2021-07-11T17:32:10.747906800+08:00[Asia/Shanghai]
+2021-07-11T17:32:10.747906800
+2021-07-11T17:32:10.747906800+08:00[Asia/Shanghai]        
+    \end{lstlisting}
+
     \subsection{时间的属性获取与设置(Temporal)}
+
+    由于\textbf{Instant}，\textbf{LocalDateTime}，\textbf{ZonedDateTime}三者是等价的，因此我们主要以\textbf{LocalDateTime}讲时间的属性获取与设置。
+
 
     \subsection{时间的加与减}
 
     \subsection{Duration与TemporalAmout}
+
+    \subsection{格式化(ISO-8061)
+    \footnote{
+        ISO6081简介，\url{https://calendars.wikia.org/wiki/ISO_8601}
+    }}
 
     \section{Spring}
 
