@@ -79,7 +79,7 @@
 
     \chapter{Java\&Kotlin}
 
-    \section{Joda-time时间处理类}
+    \section{Joda-time时间处理类(since 1.8)\label{section_1}}
 
     \begin{flushright}
         \begin{tikzpicture}
@@ -213,11 +213,11 @@
 
     \textbf{ZoneId}是一个抽象类，其有两个实现类：
     \begin{enumerate}
-        \item \textbf{ZoneOffset} 该类为偏移时区，为指定具体区域。
+        \item \textbf{ZoneOffset} 该类为偏移时区，未指定具体区域。
         \item \textbf{ZoneRegion} 该类表示具体区域的时区。该类为internal。
     \end{enumerate}
 
-    这三个类都没有公开构造函数，只能通过他们的静态方法去构建对象。\textbf{ZoneId}的静态方法可以构建出\textbf{ZoneOffset}或者\textbf{ZoneRegion}实力，而\textbf{ZoneOffset}的静态方法只能构建出\textbf{ZoneOffset}实例。\textbf{ZoneRegion}只能通过\textbf{ZoneId}的静态方法间接构造。
+    这三个类都没有公开构造函数，只能通过他们的静态方法去构建对象。\textbf{ZoneId}的静态方法可以构建出\textbf{ZoneOffset}或者\textbf{ZoneRegion}示例，而\textbf{ZoneOffset}的静态方法只能构建出\textbf{ZoneOffset}实例。\textbf{ZoneRegion}只能通过\textbf{ZoneId}的静态方法间接构造。
 
     下面给出了创建\textbf{ZoneId}的一些代码示例：
 
@@ -307,9 +307,220 @@ final class ZoneRegion extends ZoneId implements Serializable {
 }
     \end{lstlisting}
 
-    我们可以发现\textbf{ZoneId}对应的具体时间偏移是存储在\textbf{rules}中的，由于该类的代码非常复杂，就不再深入研究了。
+    我们可以发现\textbf{ZoneId}对应的具体时间偏移是存储在\textbf{rules}中的，由于该类的代码非常复杂，就不再深入研究了。同时，由于政策的因素，一个区域所属的时区可能随时发生变更。因此\textbf{ZoneRegion}的\textbf{rules}存储在系统资源中。
 
     \subsection{获取当前时间}
+
+    我们首先看几个常用的Api获取当前时间的例子：
+
+    \begin{lstlisting}[language=Kotlin]
+@Test
+fun testNow() {
+    // Old Apis
+    val oldDate = Date()
+    println(oldDate)
+    val oldDate2 = Calendar.getInstance().time
+    println(oldDate2)
+
+    // New Apis
+    val instant = Instant.now()
+    println(instant)
+
+    val localDateTime = LocalDateTime.now()
+    println(localDateTime)
+
+    val zonedDateTime = Instant.now().atZone(ZoneId.systemDefault())
+    println(zonedDateTime)
+}
+    \end{lstlisting}
+
+    输入如下：（根据调用的时间会产生不同的结果）
+
+    \begin{lstlisting}
+Sun Jul 11 08:21:28 CST 2021
+Sun Jul 11 08:21:28 CST 2021
+2021-07-11T00:21:28.568046200Z
+2021-07-11T08:21:28.583665900
+2021-07-11T08:21:28.583665900+08:00[Asia/Shanghai]
+    \end{lstlisting}
+
+    可以发现\textbf{Instant.now()}获取的是当前的UTC时间，然后\textbf{LocalDateTime.now()}获取的是当前的本地时间。
+
+    \begin{note}
+        \textbf{CST}：区域Asia/Shanghai的简写
+
+        \textbf{Date}获取的时间是不带时区信息的。在这五个对象的实例中，仅有\textbf{ZonedDateTime}带时区信息。
+    \end{note}
+
+    有一定了解的话，我们会发现\textbf{Date}的\textbf{hours}等属性是被废弃的，究其原因主要是其不自带时区信息，容易产生混淆。应当使用\textbf{Calandar}的相关方法进行代替。
+
+    正式由于旧Api定义不明，使用复杂，精度不高。自java 1.8开始。\textbf{Instant}就替代了\textbf{Date}，\textbf{LocalDateTime}、\textbf{ZonedDateTime}就替代了\textbf{Calandar}，成为了java日期与时间的新的标准。
+
+    \textbf{获得一个确定的时间}
+
+    加入我们有一个时间2021/1/1 19:00:00(UTC)，我们怎样通过新或者旧的Api去获取这个示例呢。下面给出几种调用的方式：
+
+    \begin{lstlisting}[language=Kotlin]
+@Test
+fun testSpecific() {
+    // 首先固定一个时钟 对应本地时间2021/7/12 3:00
+    val fixedInstant = Instant.parse("2021-07-11T19:00:00.00Z")
+    val fixedClock = Clock.fixed(
+        fixedInstant, ZoneId.systemDefault()
+    )
+
+    val date = Date(fixedClock.millis())
+    println(date)
+    val date2 = Calendar.getInstance().apply {
+        this.timeInMillis = fixedClock.millis()
+    }.time
+    println(date2)
+    // 特别需要注意：Calendar.getInstance()会获取本地日历系统，设置的时间也是按照本地时间来设置的。
+    val date3 = Calendar.getInstance().apply {
+        this.set(Calendar.YEAR, 2021)
+        // 特别需要注意的是，Calendar中Month范围为0~11.
+        this.set(Calendar.MONTH, Calendar.JULY)
+        this.set(Calendar.DATE, 12)
+        this.set(Calendar.HOUR, 3)
+        this.set(Calendar.MINUTE, 0)
+        this.set(Calendar.SECOND, 0)
+        // 这个一定要设置成0
+        this.set(Calendar.MILLISECOND, 0)
+    }.time
+    println(date3)
+
+    val date4 = Instant.from(fixedInstant)
+    val date5 = Instant.ofEpochMilli(fixedClock.millis())
+    println(date4)
+    println(date5)
+
+    val date6 = LocalDateTime.of(2021,7,12,3,0,0)
+    println(date6)
+
+    val date7 = ZonedDateTime.ofInstant(date4, ZoneId.systemDefault())
+    println(date7)
+}
+    \end{lstlisting}
+
+    输入如下：
+
+    \begin{lstlisting}[]
+Mon Jul 12 03:00:00 CST 2021
+Mon Jul 12 03:00:00 CST 2021
+Mon Jul 12 03:00:00 CST 2021
+2021-07-11T19:00:00Z
+2021-07-11T19:00:00Z
+2021-07-12T03:00
+2021-07-12T03:00+08:00[Asia/Shanghai]
+    \end{lstlisting}
+
+    \subsection{时间从哪来？时钟系统}
+
+    如何获取当前的时间，就一定需要系统的相关资源，在阅读源码之后，我们会发现，无论是Old Api合适New Api，都是使用到时间戳，即相对于\textbf{EPOCH}的偏移量。
+
+    \begin{note}
+        在计算机系统中，会有一个时钟，用来记录距离1970-01-01T00:00:00Z（EPOCH）的毫秒数（或者纳秒数）。
+    \end{note}
+
+    我们先看两者源码的实现：
+
+    \begin{lstlisting}[language=Kotlin]
+public class Date implements java.io.Serializable, Cloneable, Comparable<Date>
+{
+    public Date() {
+        this(System.currentTimeMillis());
+    }
+}
+
+public final class Instant implements Temporal, TemporalAdjuster, Comparable<Instant>, Serializable {
+    public static Instant now() {
+        return Clock.systemUTC().instant();
+    }
+}
+
+static final class SystemClock extends Clock implements Serializable {
+    @Override
+    public long millis() {
+        // System.currentTimeMillis() and VM.getNanoTimeAdjustment(offset)
+        // use the same time source - System.currentTimeMillis() simply
+        // limits the resolution to milliseconds.
+        // So we take the faster path and call System.currentTimeMillis()
+        // directly - in order to avoid the performance penalty of
+        // VM.getNanoTimeAdjustment(offset) which is less efficient.
+        return System.currentTimeMillis();
+    }
+    @Override
+    public Instant instant() {
+        // Take a local copy of offset. offset can be updated concurrently
+        // by other threads (even if we haven't made it volatile) so we will
+        // work with a local copy.
+        long localOffset = offset;
+        long adjustment = VM.getNanoTimeAdjustment(localOffset);
+
+        if (adjustment == -1) {
+            // -1 is a sentinel value returned by VM.getNanoTimeAdjustment
+            // when the offset it is given is too far off the current UTC
+            // time. In principle, this should not happen unless the
+            // JVM has run for more than ~136 years (not likely) or
+            // someone is fiddling with the system time, or the offset is
+            // by chance at 1ns in the future (very unlikely).
+            // We can easily recover from all these conditions by bringing
+            // back the offset in range and retry.
+
+            // bring back the offset in range. We use -1024 to make
+            // it more unlikely to hit the 1ns in the future condition.
+            localOffset = System.currentTimeMillis()/1000 - 1024;
+
+            // retry
+            adjustment = VM.getNanoTimeAdjustment(localOffset);
+
+            if (adjustment == -1) {
+                // Should not happen: we just recomputed a new offset.
+                // It should have fixed the issue.
+                throw new InternalError("Offset " + localOffset + " is not in range");
+            } else {
+                // OK - recovery succeeded. Update the offset for the
+                // next call...
+                offset = localOffset;
+            }
+        }
+        return Instant.ofEpochSecond(localOffset, adjustment);
+    }
+}
+    \end{lstlisting}
+
+    我们可以发现，两者通过逐级的调用，都使用到了\textbf{System.currentTimeMillis()}，\\ \textbf{VM.getNanoTimeAdjustMent(Long)}两个方法，两者都是和硬件相关的。
+
+    \textbf{Clock}
+    
+    Clock是在java1.8后引入的新的时钟类，主要用于提供当前的时间信息，实际上就是对系统资源的包装（Facade）。他具有四种实现类\textbf{SystemClock}，\textbf{OffsetClock}，\textbf{TickClock}，
+    \textbf{FixedClock}。
+    
+    其中\textbf{SystemClock}是系统时钟类，可以获取当前的时钟信息（系统资源）。而\textbf{FixedClock}提供一个固定的时钟，常常用于测试。其他的两个实现\textbf{OffsetClock}和\textbf{TickClock}都是装饰类，一个添加偏移，一个进行\textbf{truncate}操作。
+
     \subsection{Instant、LocalDateTime、ZoneDateTime之间的关系}
+
+    \subsection{时间的属性获取与设置(Temporal)}
+
+    \subsection{时间的加与减}
+
+    \subsection{Duration与TemporalAmout}
+
+    \section{Spring}
+
+    \section{Locale}
+
+    \section{NIO}
+
+
+
+    \chapter{Record Logs}
+
+    \section{2021年}
+
+    \textbf{2021年7月10日} 创建了\ref{section_1}Joda-time时间处理类(since 1.8)，编写第1-3节。
+    
+    \textbf{2021年7月11日} 编写\ref{section_1}Joda-time时间处理类(since 1.8)第4-5节。
+    
 
 \end{document}
