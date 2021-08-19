@@ -97,7 +97,7 @@
         在之后的笔记中，有时候时间的含义可能有两种情况：
         \begin{enumerate}
             \item 代表一个24小时内的时间
-            \item 代表一个瞬时的时间点
+            \item 代表一个瞬时的时间点（包含日期和时间）
         \end{enumerate}
         因此，请读者在阅读笔记时根据上下文确定含义，避免不必要的误会。
     \end{note}
@@ -132,7 +132,7 @@
 
     \begin{enumerate}
         \item 将计时精度从原来的ms(毫秒)提高到了ns(纳秒).
-        \item 新的API为不可变类型，旧的API为可变类型，支持作为\textbf{HashMap}的key.
+        \item 新的API为不可变类型，旧的API为可变类型，支持做为\textbf{HashMap}的key.
         \item 能够方便的表示时区以及在各个时区内互相转换.
     \end{enumerate}
 
@@ -212,10 +212,10 @@
         需要注意的是，日界线并不一定在东十二区和西十二区中间。
     \end{note}
 
-    \subsection{ZoneId
-        \footnote{
-            JAVA8之 日期时间时区之 ZoneId[ZoneOffset, ZoneRegion] 笔记：\url{https://blog.csdn.net/kfepiza/article/details/115433132}
-        }
+    \subsection{ZoneId}
+
+    \footnote{
+        JAVA8之 日期时间时区之 ZoneId[ZoneOffset, ZoneRegion] 笔记：\url{https://blog.csdn.net/kfepiza/article/details/115433132}
     }
 
     \textbf{ZoneId}是在Java 1.8之后引入的时区Api，用于替代旧的Api \textbf{TimeZone}，可以认为是一个区域的表示。
@@ -423,7 +423,7 @@ Mon Jul 12 03:00:00 CST 2021
 2021-07-12T03:00+08:00[Asia/Shanghai]
     \end{lstlisting}
 
-    \subsection{时间从哪来？时钟系统}
+    \subsection{时钟系统}
 
     如何获取当前的时间，就一定需要系统的相关资源，在阅读源码之后，我们会发现，无论是Old Api合适New Api，都是使用到时间戳，即相对于\textbf{EPOCH}的偏移量。
 
@@ -566,15 +566,32 @@ fun testInstantTransform() {
 
     由于\textbf{Instant}，\textbf{LocalDateTime}，\textbf{ZonedDateTime}三者是等价的，因此我们主要以\textbf{LocalDateTime}讲时间的属性获取与设置。
 
+    例如，对于一个时间"2021-07-11T19:00:00.00Z"，我们可以获取年、月、日、时、分、秒、毫秒等，也可以获取一天经过的纳秒数等属性。
+
+    \textbf{Joda中的表示}
+
+    在Joda中，属性并不是一个简单的标号，它由\textbf{BaseUnit}和\textbf{RegionUnit}组成。例如当表示“时”这个单位是，它的\textbf{BaseUnit}是“时”，它的\textbf{RegionUnit}是“日”，因为“时”的概念等价于“一天中的小时”。“日”和“时”都是可以由一个时间段来表示的，因此都需要使用到时间段（Duration）的概念。
+
+    在Joda Time中，使用了\textbf{TemporalUnit}表示了一个时间单位，\textbf{TemporalField}表示了一个时间属性。
+
+
+    \textbf{示例代码}
+
+    \begin{lstlisting}[language=Kotlin]
+
+    \end{lstlisting}
 
     \subsection{时间的加与减}
 
+    我们常常会有这样的需求：对一个时间增加或者减少一定的时间，例如
+
     \subsection{Duration与TemporalAmout}
 
-    \subsection{格式化(ISO-8061)
+    \subsection{格式化(ISO-8061)}
+
     \footnote{
         ISO6081简介，\url{https://calendars.wikia.org/wiki/ISO_8601}
-    }}
+    }
 
     \section{Spring}
 
